@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace perflux.Workers
@@ -17,7 +18,7 @@ namespace perflux.Workers
         {
             log.Debug("PostWorker is working.");
 
-            string json = string.Empty;
+            string lineProtocol = string.Empty;
 
             lock (context.key)
             {
@@ -25,7 +26,7 @@ namespace perflux.Workers
 
                 var counters = context.Counters;
 
-                json = Counter.ToJson(counters);
+                lineProtocol = Counter.ToLineProtocol(counters);
             }
 
             if (worker.CancellationPending)
@@ -38,8 +39,7 @@ namespace perflux.Workers
 
             HttpClient http = new HttpClient(new GzipHandler(new HttpClientHandler()), true);
 
-            var content = new StringContent(json);
-            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            var content = new StringContent(lineProtocol);
 
             Task<HttpResponseMessage> result = http.PostAsync(context.ConnectionUri, content);
 
