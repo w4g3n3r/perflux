@@ -54,6 +54,9 @@
     <Reference Include="Topshelf">
       <HintPath>..\packages\Topshelf.3.1.4\lib\net40-full\Topshelf.dll</HintPath>
     </Reference>
+    <Reference Include="UnidecodeSharpFork">
+      <HintPath>..\packages\UnidecodeSharpFork.1.0.0\lib\UnidecodeSharpFork.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\InfluxConnectionElement.cs" />
