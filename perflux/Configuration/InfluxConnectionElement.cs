@@ -26,7 +26,7 @@ namespace perflux.Configuration
 
         public Uri GetConnectionUri()
         {
-            string url = string.Format("http://{0}:{1}/db/{2}/series?u={3}&p={4}",
+            string url = string.Format("http://{0}:{1}/write?db={2}&u={3}&p={4}&precision=ms",
                 HostName,
                 Port,
                 DatabaseName,

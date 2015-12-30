@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Globalization;
+using UnidecodeSharpFork;
 
 namespace perflux
 {
@@ -80,6 +83,37 @@ namespace perflux
             json.Append(']');
 
             return json.ToString();
+        }
+
+        // see https://influxdb.com/docs/v0.9/write_protocols/line.html
+        public static string ToLineProtocol(Dictionary<string, Counter> counters)
+        {
+            List<String> lines = new List<String>();
+
+            foreach (var series in counters.Keys) {
+                var samples = counters[series].Calculate();
+
+                if (!samples.Any ())
+                    continue;
+
+                // change "\Dysk logiczny(*)\Średnia liczba bajtów dysku/Transfer" to ".dysk-logiczny.srednia-liczba-bajtow-dysku.transfer"
+                var normalizedSeriesName = Regex.Replace(series.ToLower().Unidecode().Replace (" ", "-").Replace("\\", "."), @"[^\w.-]", "", RegexOptions.Compiled);
+
+                foreach (var epoch in samples.Keys) {
+                    // cpu,host=server01,region=uswest value=1 1434055562000000000
+                    // cpu,host=server02,region=uswest value=3 1434055562000010000
+                    // temperature,machine=unit42,type=assembly internal=32,external=100 1434055562000000035
+                    // temperature,machine=unit143,type=assembly internal=22,external=130 1434055562005000035
+
+                    lines.Add(string.Format(@"{0},host={1} value={2} {3}",
+                        normalizedSeriesName,
+                        Environment.MachineName,
+                        samples[epoch].ToString("F", CultureInfo.InvariantCulture),
+                        epoch));
+                }
+            }
+
+            return string.Join("\n", lines);
         }
     }
 }
